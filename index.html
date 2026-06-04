@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NUUK — Meta Creative Intelligence</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F1F5F9;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+    --navy: #0F172A;
+    --blue: #2563EB;
+    --blue-light: #EFF6FF;
+    --text: #1E293B;
+    --muted: #64748B;
+    --green: #059669;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ─── Upload Screen ─────────────────────────────────────── */
+
+  #upload-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 36px;
+    padding: 60px 24px;
+    background: var(--navy);
+  }
+
+  .upload-hero {
+    text-align: center;
+    color: white;
+  }
+
+  .upload-hero h1 {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    margin-bottom: 10px;
+  }
+
+  .upload-hero h1 span { color: #60A5FA; }
+
+  .upload-hero p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    max-width: 520px;
+    line-height: 1.7;
+  }
+
+  .upload-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    width: 100%;
+    max-width: 820px;
+  }
+
+  @media (max-width: 620px) { .upload-cards { grid-template-columns: 1fr; } }
+
+  .upload-card {
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .upload-card:hover { border-color: rgba(96,165,250,0.4); }
+  .upload-card.ready { border-color: #10B981 !important; background: rgba(16,185,129,0.08); }
+  .upload-card.dragover { border-color: rgba(96,165,250,0.7); background: rgba(255,255,255,0.1); }
+
+  .ucard-icon { font-size: 28px; }
+
+  .upload-card h3 { font-size: 14px; font-weight: 700; color: white; }
+  .upload-card p { font-size: 12.5px; color: rgba(255,255,255,0.45); line-height: 1.5; }
+
+  .file-status {
+    font-size: 12.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .file-status.pending { color: rgba(255,255,255,0.3); }
+  .file-status.ready { color: #34D399; }
+
+  input[type="file"] { display: none; }
+
+  .sheet-url-input {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px 11px;
+    color: white;
+    font-size: 12px;
+    width: 100%;
+    outline: none;
+  }
+
+  .sheet-url-input::placeholder { color: rgba(255,255,255,0.28); }
+  .sheet-url-input:focus { border-color: rgba(96,165,250,0.5); }
+
+  .drop-zone {
+    border: 1.5px dashed rgba(255,255,255,0.2);
+    border-radius: 10px;
+    padding: 22px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .drop-zone:hover { border-color: rgba(96,165,250,0.5); }
+  .drop-zone-icon { font-size: 22px; }
+  .drop-zone-text { font-size: 12px; color: rgba(255,255,255,0.45); }
+
+  .btn-sm {
+    padding: 6px 14px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    border-radius: 7px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-sm:hover { background: rgba(255,255,255,0.15); }
+
+  .divider-text {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    text-align: center;
+  }
+
+  .btn-primary {
+    padding: 13px 44px;
+    background: #3B82F6;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s;
+    letter-spacing: -0.3px;
+  }
+
+  .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-primary:not(:disabled):hover { background: #2563EB; }
+
+  .upload-note { font-size: 11.5px; color: rgba(255,255,255,0.25); text-align: center; }
+
+  /* ─── Loading ────────────────────────────────────────────── */
+
+  #loading {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,0.88);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    gap: 14px;
+    color: white;
+  }
+
+  .spinner {
+    width: 34px;
+    height: 34px;
+    border: 3px solid rgba(255,255,255,0.15);
+    border-top-color: #60A5FA;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading p { font-size: 13px; color: rgba(255,255,255,0.6); }
+
+  /* ─── App Header ─────────────────────────────────────────── */
+
+  #app { min-height: 100vh; }
+
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 0 20px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo { font-size: 13.5px; font-weight: 800; letter-spacing: 0.2px; }
+  .logo span { color: #60A5FA; }
+
+  .header-right { display: flex; align-items: center; gap: 10px; }
+
+  .match-badge {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    background: rgba(255,255,255,0.07);
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.75);
+    padding: 5px 12px;
+    border-radius: 7px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .btn-ghost:hover { background: rgba(255,255,255,0.15); }
+
+  /* ─── Filter Bar ─────────────────────────────────────────── */
+
+  .filter-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    min-height: 48px;
+    position: sticky;
+    top: 50px;
+    z-index: 99;
+  }
+
+  .product-tabs { display: flex; gap: 3px; flex-wrap: wrap; }
+
+  .product-tab {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: none;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .product-tab:hover { background: var(--bg); color: var(--text); }
+  .product-tab.active { background: var(--navy); color: white; }
+
+  .fdivider { width: 1px; height: 20px; background: var(--border); flex-shrink: 0; }
+
+  .fgroup { display: flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); }
+
+  .fselect, .fdate {
+    font-size: 12px;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .fdate { width: 116px; }
+
+  .qd-btn {
+    padding: 3px 9px;
+    border-radius: 5px;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+
+  .qd-btn:hover, .qd-btn.active { background: var(--navy); color: white; border-color: var(--navy); }
+
+  .ml-auto { margin-left: auto; }
+
+  /* ─── Main ───────────────────────────────────────────────── */
+
+  main {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  /* ─── KPI ────────────────────────────────────────────────── */
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    padding: 15px 16px;
+  }
+
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+
+  .kpi-value {
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.5px;
+    line-height: 1;
+    margin-bottom: 3px;
+  }
+
+  .kpi-sub { font-size: 11px; color: var(--muted); }
+
+  /* ─── Section header ─────────────────────────────────────── */
+
+  .sec-hd {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 10px;
+  }
+
+  .sec-title { font-size: 14px; font-weight: 800; color: var(--navy); letter-spacing: -0.3px; }
+  .sec-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .sec-ctrl { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  /* ─── Breakdown Grid ─────────────────────────────────────── */
+
+  .bk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+  }
+
+  .bk-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    overflow: hidden;
+  }
+
+  .bk-head {
+    padding: 11px 15px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .bk-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--navy);
+  }
+
+  .bk-cnt {
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--border);
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+
+  .bk-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+
+  .bk-tbl th {
+    text-align: right;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--muted);
+    padding: 6px 13px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    background: var(--bg);
+  }
+
+  .bk-tbl th:first-child { text-align: left; }
+
+  .bk-tbl td {
+    padding: 7px 13px;
+    text-align: right;
+    border-bottom: 1px solid #F1F5F9;
+    vertical-align: middle;
+  }
+
+  .bk-tbl td:first-child {
+    text-align: left;
+    font-weight: 500;
+    max-width: 160px;
+  }
+
+  .bk-tbl tr:last-child td { border-bottom: none; }
+  .bk-tbl tr:hover td { background: #F8FAFF; }
+
+  .val-txt {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 160px;
+    font-size: 12px;
+  }
+
+  /* ROAS badge */
+  .rb { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 12px; font-weight: 700; font-size: 11px; }
+  .rb5 { background: #D1FAE5; color: #065F46; }
+  .rb4 { background: #DCFCE7; color: #166534; }
+  .rb3 { background: #DBEAFE; color: #1D4ED8; }
+  .rb2 { background: #FEF3C7; color: #92400E; }
+  .rb1 { background: #FEE2E2; color: #991B1B; }
+
+  .cnt-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    padding: 1px 5px;
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+  }
+
+  /* ─── Matrix ─────────────────────────────────────────────── */
+
+  .matrix-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 15px;
+    margin-bottom: 14px;
+  }
+
+  .matrix-ctrl label { font-size: 11.5px; font-weight: 700; color: var(--navy); white-space: nowrap; }
+
+  .matrix-wrap {
+    overflow-x: auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+  }
+
+  .mx-tbl { border-collapse: collapse; font-size: 11.5px; min-width: 300px; }
+
+  .mx-tbl th {
+    padding: 8px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--muted);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    text-align: center;
+    white-space: nowrap;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mx-tbl th.corner-th { background: var(--navy); color: rgba(255,255,255,0.4); font-size: 9px; }
+
+  .mx-tbl td {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    text-align: center;
+    font-size: 11.5px;
+    font-weight: 600;
+    min-width: 72px;
+  }
+
+  .mx-tbl td.row-hd {
+    text-align: left;
+    font-weight: 600;
+    background: var(--bg);
+    color: var(--text);
+    white-space: nowrap;
+    padding: 6px 13px;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mx-tbl td.empty { color: #CBD5E1; font-weight: 400; font-size: 10px; }
+
+  /* ─── Ad Table ───────────────────────────────────────────── */
+
+  .ad-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    overflow: hidden;
+  }
+
+  .tbl-toolbar {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+  }
+
+  .srch {
+    flex: 1;
+    min-width: 180px;
+    max-width: 280px;
+    padding: 6px 11px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    font-size: 12px;
+    background: var(--bg);
+    outline: none;
+    color: var(--text);
+  }
+
+  .tbl-scroll { overflow-x: auto; }
+
+  .dtbl { width: 100%; border-collapse: collapse; font-size: 11.5px; min-width: 1000px; }
+
+  .dtbl th {
+    background: var(--bg);
+    text-align: left;
+    padding: 8px 11px;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .dtbl th:hover { color: var(--navy); }
+  .dtbl th.sorted { color: var(--blue); }
+
+  .dtbl td {
+    padding: 7px 11px;
+    border-bottom: 1px solid #F1F5F9;
+    vertical-align: top;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dtbl tr:hover td { background: #F8FAFF; }
+  .dtbl td.r { text-align: right; }
+
+  .tag-prod {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 9px;
+    font-size: 9.5px;
+    font-weight: 700;
+    background: var(--blue-light);
+    color: var(--blue);
+  }
+
+  .tag-untag { background: #FEF3C7; color: #92400E; }
+  .adcode { font-weight: 700; color: var(--navy); font-size: 11.5px; }
+
+  .empty-st { text-align: center; padding: 36px 20px; color: var(--muted); font-size: 12.5px; }
+  </style>
+</head>
+<body>
+
+<div id="loading" style="display:none">
+  <div class="spinner"></div>
+  <p id="loading-msg">Processing...</p>
+</div>
+
+<!-- ─── Upload Screen ────────────────────────────────────────── -->
+<div id="upload-screen">
+  <div class="upload-hero">
+    <h1>NUUK <span>Meta Creative Intelligence</span></h1>
+    <p>Load your creative master sheet and Meta Ads performance report to see what variables — and what combinations — are driving results by product.</p>
+  </div>
+
+  <div class="upload-cards">
+
+    <!-- Creative Master Sheet -->
+    <div class="upload-card" id="master-card">
+      <div class="ucard-icon">📋</div>
+      <div>
+        <h3>Creative Master Sheet</h3>
+        <p>Your Google Sheet with ad codes and all creative tags — Funnel Stage, Format, Visual Style, Hook, Tone, etc.</p>
+      </div>
+      <input type="text" class="sheet-url-input" id="sheet-url" placeholder="Paste Google Sheets URL…">
+      <button class="btn-sm" id="btn-fetch">Fetch from Google Sheets</button>
+      <div class="divider-text">— or upload file —</div>
+      <label style="cursor:pointer; text-align:center">
+        <span class="btn-sm" style="display:inline-block">Browse XLSX / CSV</span>
+        <input type="file" id="master-file" accept=".xlsx,.xls,.csv">
+      </label>
+      <div class="file-status pending" id="master-status">⬜ Not loaded</div>
+    </div>
+
+    <!-- Performance Report -->
+    <div class="upload-card" id="perf-card">
+      <div class="ucard-icon">📊</div>
+      <div>
+        <h3>Meta Ads Performance Report</h3>
+        <p>Audience-Creative-Performance-Review XLSX from Meta Ads Manager. Can cover any date range.</p>
+      </div>
+      <div class="drop-zone" id="perf-drop">
+        <div class="drop-zone-icon">📁</div>
+        <div class="drop-zone-text">Drop XLSX here or click to browse</div>
+        <input type="file" id="perf-file" accept=".xlsx,.xls">
+      </div>
+      <div class="file-status pending" id="perf-status">⬜ Not loaded</div>
+    </div>
+
+  </div>
+
+  <button class="btn-primary" id="btn-analyse" disabled>Analyse →</button>
+  <p class="upload-note">All data is processed in your browser — nothing is uploaded to any server</p>
+</div>
+
+<!-- ─── Dashboard ─────────────────────────────────────────────── -->
+<div id="app" style="display:none">
+  <header>
+    <div class="logo">NUUK <span>Meta Creative</span></div>
+    <div class="header-right">
+      <span class="match-badge" id="match-info"></span>
+      <button class="btn-ghost" id="btn-reset">← Change Files</button>
+    </div>
+  </header>
+
+  <div class="filter-bar">
+    <div class="product-tabs" id="product-tabs"></div>
+    <div class="fdivider"></div>
+    <div class="fgroup">
+      <span>Date</span>
+      <input type="date" class="fdate" id="f-from">
+      <span>–</span>
+      <input type="date" class="fdate" id="f-to">
+    </div>
+    <div style="display:flex;gap:3px">
+      <button class="qd-btn" data-days="7">7d</button>
+      <button class="qd-btn" data-days="14">14d</button>
+      <button class="qd-btn" data-days="30">30d</button>
+      <button class="qd-btn active" data-days="0">All</button>
+    </div>
+    <div class="fdivider"></div>
+    <div class="fgroup ml-auto">
+      <span>Sort by</span>
+      <select class="fselect" id="sort-metric">
+        <option value="roas">ROAS</option>
+        <option value="spend">Spend</option>
+        <option value="purchases">Purchases</option>
+        <option value="hookRate">Hook Rate</option>
+        <option value="ctr">CTR</option>
+        <option value="count">Asset Count</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <span>Min Spend</span>
+      <select class="fselect" id="min-spend">
+        <option value="0">All</option>
+        <option value="1000">₹1K+</option>
+        <option value="5000">₹5K+</option>
+        <option value="10000">₹10K+</option>
+        <option value="50000">₹50K+</option>
+      </select>
+    </div>
+  </div>
+
+  <main>
+    <!-- KPI cards -->
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <!-- Breakdown -->
+    <div>
+      <div class="sec-hd">
+        <div>
+          <div class="sec-title">Variable Breakdown</div>
+          <div class="sec-sub">Performance by each creative tag dimension — sorted by <span id="sort-label">ROAS</span></div>
+        </div>
+        <div class="sec-ctrl">
+          <label style="font-size:11px;color:var(--muted)">Untagged ads:</label>
+          <select class="fselect" id="show-untagged">
+            <option value="exclude">Exclude</option>
+            <option value="include">Include</option>
+          </select>
+        </div>
+      </div>
+      <div class="bk-grid" id="bk-grid"></div>
+    </div>
+
+    <!-- Cross-combination matrix -->
+    <div>
+      <div class="sec-hd">
+        <div>
+          <div class="sec-title">Cross-Combination Matrix</div>
+          <div class="sec-sub">Find the best-performing combination of two variables</div>
+        </div>
+      </div>
+      <div class="matrix-ctrl">
+        <label>Rows:</label>
+        <select class="fselect" id="mx-row" style="font-size:12.5px;padding:5px 9px"></select>
+        <label style="margin-left:8px">Columns:</label>
+        <select class="fselect" id="mx-col" style="font-size:12.5px;padding:5px 9px"></select>
+        <select class="fselect" id="mx-metric" style="font-size:12.5px;padding:5px 9px;margin-left:10px">
+          <option value="roas">Show: ROAS</option>
+          <option value="spend">Show: Spend</option>
+          <option value="purchases">Show: Purchases</option>
+          <option value="count">Show: Asset Count</option>
+        </select>
+        <span style="font-size:11px;color:var(--muted);margin-left:4px">· Cell colour = intensity · hover for ad count</span>
+      </div>
+      <div class="matrix-wrap">
+        <table class="mx-tbl" id="mx-tbl"></table>
+      </div>
+    </div>
+
+    <!-- Ad-level table -->
+    <div>
+      <div class="sec-hd">
+        <div>
+          <div class="sec-title">Ad-Level View</div>
+          <div class="sec-sub" id="ad-sub"></div>
+        </div>
+      </div>
+      <div class="ad-wrap">
+        <div class="tbl-toolbar">
+          <input type="text" class="srch" id="ad-srch" placeholder="Search ad code, product, creator, hook…">
+          <select class="fselect" id="tag-filter">
+            <option value="all">All ads</option>
+            <option value="tagged">Tagged only</option>
+            <option value="untagged">Untagged only</option>
+          </select>
+          <span style="font-size:11px;color:var(--muted);margin-left:auto" id="ad-cnt"></span>
+        </div>
+        <div class="tbl-scroll">
+          <table class="dtbl" id="ad-tbl">
+            <thead>
+              <tr>
+                <th data-col="adCode">Ad Code</th>
+                <th data-col="product">Product</th>
+                <th data-col="funnelStage">Funnel</th>
+                <th data-col="format">Format</th>
+                <th data-col="visualStyle">Visual Style</th>
+                <th data-col="contentBucket">Content Bucket</th>
+                <th data-col="hook">Hook</th>
+                <th data-col="tone">Tone</th>
+                <th data-col="creator">Creator</th>
+                <th data-col="spend" class="r">Spend</th>
+                <th data-col="roas" class="r">ROAS</th>
+                <th data-col="purchases" class="r">Purch</th>
+                <th data-col="hookRate" class="r">Hook%</th>
+                <th data-col="ctr" class="r">CTR%</th>
+                <th data-col="cpm" class="r">CPM</th>
+              </tr>
+            </thead>
+            <tbody id="ad-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// CONFIG
+// ─────────────────────────────────────────────────────────────
+
+const BK_VARS = [
+  { key: 'funnelStage',   label: 'Funnel Stage'   },
+  { key: 'format',        label: 'Format'         },
+  { key: 'visualStyle',   label: 'Visual Style'   },
+  { key: 'contentBucket', label: 'Content Bucket' },
+  { key: 'hook',          label: 'Hook / Angle'   },
+  { key: 'voiceover',     label: 'Voice Over'     },
+  { key: 'tone',          label: 'Tone'           },
+  { key: 'season',        label: 'Season'         },
+  { key: 'offer',         label: 'Offer'          },
+  { key: 'production',    label: 'Production'     },
+  { key: 'creator',       label: 'Creator'        },
+  { key: 'language',      label: 'Language'       },
+];
+
+// ─────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────
+
+let masterMap = null;   // Map: adCode → variable tags
+let perfRows  = [];     // Raw perf rows from XLSX
+let allAds    = [];     // Joined, one entry per unique ad code
+let viewAds   = [];     // After all filters + aggregation
+let products  = [];
+
+let S = {
+  product:       'All',
+  dateFrom:      null,
+  dateTo:        null,
+  sortMetric:    'roas',
+  minSpend:      0,
+  showUntagged:  false,
+  adSort:        'roas',
+  adDir:         -1,
+  adSearch:      '',
+  tagFilter:     'all',
+  mxRow:         'format',
+  mxCol:         'visualStyle',
+  mxMetric:      'roas',
+};
+
+// ─────────────────────────────────────────────────────────────
+// UPLOAD WIRING
+// ─────────────────────────────────────────────────────────────
+
+let _masterRaw = null, _perfRaw = null;
+
+/* Google Sheets fetch */
+document.getElementById('btn-fetch').addEventListener('click', async () => {
+  const url = document.getElementById('sheet-url').value.trim();
+  if (!url) return;
+  const m = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+  if (!m) { alert('Not a valid Google Sheets URL.'); return; }
+  const id  = m[1];
+  const gm  = url.match(/[?&#]gid=(\d+)/);
+  const gid = gm ? gm[1] : '0';
+  const csv = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`;
+  showLoading('Fetching sheet…');
+  try {
+    const r = await fetch(csv, { redirect: 'follow' });
+    if (!r.ok) throw new Error('Sheet is not publicly accessible. Download it as XLSX and upload instead.');
+    const text = await r.text();
+    _masterRaw = { type: 'csv', data: text };
+    setStatus('master', 'ready', '✅ Master sheet loaded from Google');
+    document.getElementById('master-card').classList.add('ready');
+    checkReady();
+  } catch(e) {
+    alert(e.message);
+  } finally {
+    hideLoading();
+  }
+});
+
+/* Master file */
+const masterFileEl = document.getElementById('master-file');
+masterFileEl.addEventListener('change', () => {
+  if (masterFileEl.files[0]) readMasterFile(masterFileEl.files[0]);
+});
+
+function readMasterFile(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    _masterRaw = file.name.endsWith('.csv')
+      ? { type: 'csv', data: e.target.result }
+      : { type: 'xlsx', data: e.target.result };
+    setStatus('master', 'ready', '✅ ' + file.name);
+    document.getElementById('master-card').classList.add('ready');
+    checkReady();
+  };
+  file.name.endsWith('.csv') ? r.readAsText(file) : r.readAsArrayBuffer(file);
+}
+
+/* Perf file */
+const perfDropEl  = document.getElementById('perf-drop');
+const perfFileEl  = document.getElementById('perf-file');
+perfDropEl.addEventListener('click', () => perfFileEl.click());
+perfDropEl.addEventListener('dragover',  e => { e.preventDefault(); perfDropEl.classList.add('dragover'); });
+perfDropEl.addEventListener('dragleave', () => perfDropEl.classList.remove('dragover'));
+perfDropEl.addEventListener('drop', e => {
+  e.preventDefault(); perfDropEl.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) readPerfFile(e.dataTransfer.files[0]);
+});
+perfFileEl.addEventListener('change', () => {
+  if (perfFileEl.files[0]) readPerfFile(perfFileEl.files[0]);
+});
+
+function readPerfFile(file) {
+  const r = new FileReader();
+  r.onload = e => {
+    _perfRaw = e.target.result;
+    setStatus('perf', 'ready', '✅ ' + file.name);
+    document.getElementById('perf-card').classList.add('ready');
+    checkReady();
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function setStatus(which, type, msg) {
+  const el = document.getElementById(which + '-status');
+  el.textContent = msg;
+  el.className = 'file-status ' + type;
+}
+
+function checkReady() {
+  document.getElementById('btn-analyse').disabled = !(_masterRaw && _perfRaw);
+}
+
+document.getElementById('btn-analyse').addEventListener('click', () => {
+  showLoading('Parsing & joining data…');
+  setTimeout(() => {
+    try {
+      parseMaster(_masterRaw);
+      parsePerf(_perfRaw);
+      joinData();
+      initDashboard();
+      document.getElementById('upload-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    } catch(e) {
+      console.error(e);
+      alert('Error: ' + e.message);
+    } finally {
+      hideLoading();
+    }
+  }, 40);
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('upload-screen').style.display = 'flex';
+});
+
+function showLoading(msg) {
+  document.getElementById('loading-msg').textContent = msg || 'Processing…';
+  document.getElementById('loading').style.display = 'flex';
+}
+function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+
+// ─────────────────────────────────────────────────────────────
+// PARSE MASTER SHEET
+// ─────────────────────────────────────────────────────────────
+
+function parseMaster(raw) {
+  let rows;
+  if (raw.type === 'csv') {
+    const wb = XLSX.read(raw.data, { type: 'string' });
+    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+  } else {
+    const wb = XLSX.read(raw.data, { type: 'array' });
+    rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+  }
+
+  // Find the header row that contains "Ad Code"
+  let hi = -1;
+  for (let i = 0; i < Math.min(rows.length, 12); i++) {
+    const r = rows[i];
+    if (r && r.some(c => c && String(c).toLowerCase().replace(/\s+/g,'').includes('adcode'))) {
+      hi = i; break;
+    }
+  }
+  if (hi === -1) throw new Error('Could not find "Ad Code" column in master sheet. Make sure you are uploading/fetching the correct sheet tab.');
+
+  const hdrs = rows[hi].map(h => String(h || '').trim());
+
+  function fc(...names) {
+    for (const n of names) {
+      const i = hdrs.findIndex(h => h.toLowerCase().replace(/[^a-z]/g,'').includes(n.toLowerCase().replace(/[^a-z]/g,'')));
+      if (i !== -1) return i;
+    }
+    return -1;
+  }
+
+  const C = {
+    adCode:        fc('AdCode'),
+    product:       fc('Product'),
+    funnelStage:   fc('AdObjective', 'FunnelStage', 'Objective'),
+    format:        fc('CreativeType(Format)', 'CreativeTypeFormat', 'Format'),
+    visualStyle:   fc('VisualStyle'),
+    contentBucket: fc('Content/PillarBucket', 'ContentBucket', 'PillarBucket', 'ContentPillar'),
+    hook:          fc('Hook'),
+    rtb:           fc('KeyRTB', 'RTB'),
+    voiceover:     fc('VoiceOver'),
+    tone:          fc('PrimaryEmotion/Tone', 'Tone'),
+    language:      fc('Language'),
+    offer:         fc('Offer'),
+    price:         fc('Prices', 'Price'),
+    season:        fc('Season'),
+    production:    fc('ProductionTeam', 'Production'),
+    creator:       fc('CreatedBy', 'Creator'),
+    starring:      fc('Starring'),
+  };
+
+  if (C.adCode === -1) throw new Error('Could not map "Ad Code" column — check header names in master sheet.');
+
+  masterMap = new Map();
+
+  for (let i = hi + 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || !r.length) continue;
+    const code = cl(r[C.adCode]);
+    if (!code || !code.match(/NK-/i)) continue;
+
+    masterMap.set(code, {
+      product:       cl(r[C.product]),
+      funnelStage:   cl(r[C.funnelStage]),
+      format:        cl(r[C.format]),
+      visualStyle:   cl(r[C.visualStyle]),
+      contentBucket: cl(r[C.contentBucket]),
+      hook:          cl(r[C.hook]),
+      voiceover:     cl(r[C.voiceover]),
+      tone:          cl(r[C.tone]),
+      language:      cl(r[C.language]),
+      offer:         cl(r[C.offer]),
+      price:         cl(r[C.price]),
+      season:        cl(r[C.season]),
+      production:    cl(r[C.production]),
+      creator:       cl(r[C.creator]),
+      starring:      cl(r[C.starring]),
+    });
+  }
+
+  console.log('[Master] loaded:', masterMap.size, 'ads');
+}
+
+// ─────────────────────────────────────────────────────────────
+// PARSE PERFORMANCE XLSX
+// ─────────────────────────────────────────────────────────────
+
+function parsePerf(data) {
+  const wb   = XLSX.read(data, { type: 'array', cellDates: true });
+  const ws   = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true });
+
+  if (!rows || rows.length < 2) throw new Error('Performance file appears empty.');
+
+  const hdrs = rows[0].map(h => String(h || '').trim().toLowerCase());
+
+  function fc(...names) {
+    for (const n of names) {
+      const i = hdrs.findIndex(h => h.includes(n.toLowerCase()));
+      if (i !== -1) return i;
+    }
+    return -1;
+  }
+
+  const C = {
+    adName:    fc('ad name'),
+    day:       fc('day'),
+    spend:     fc('amount spent'),
+    roas:      fc('roas'),
+    convValue: fc('purchases conversion value'),
+    purchases: fc('purchases'),
+    clicks:    fc('clicks (all)'),
+    hookRate:  fc('hook rate'),
+    atc:       fc('adds to cart'),
+    cpm:       fc('cpm'),
+    ctr:       fc('ctr (all)'),
+    cpc:       fc('cpc (all)'),
+  };
+
+  perfRows = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    const adName = String(r[C.adName] || '').trim();
+    if (!adName || !adName.includes('__')) continue;
+
+    // Extract ad code from position 2 of __ split
+    const parts  = adName.split('__');
+    const adCode = (parts[2] || '').trim();
+    if (!adCode) continue;
+
+    let day = null;
+    const dv = r[C.day];
+    if (dv instanceof Date) day = dv;
+    else if (typeof dv === 'number' && dv > 1000) day = new Date(Math.round((dv - 25569) * 86400000));
+    else if (typeof dv === 'string') { const d = new Date(dv); if (!isNaN(d)) day = d; }
+
+    perfRows.push({
+      adName, adCode, day,
+      product0:  (parts[0] || '').trim(), // product from ad name as fallback
+      spend:     n(r[C.spend]),
+      convValue: n(r[C.convValue]),
+      purchases: n(r[C.purchases]),
+      clicks:    n(r[C.clicks]),
+      hookRate:  n(r[C.hookRate]),
+      atc:       n(r[C.atc]),
+      cpm:       n(r[C.cpm]),
+      ctr:       n(r[C.ctr]),
+      cpc:       n(r[C.cpc]),
+    });
+  }
+
+  console.log('[Perf] loaded:', perfRows.length, 'rows');
+}
+
+// ─────────────────────────────────────────────────────────────
+// JOIN
+// ─────────────────────────────────────────────────────────────
+
+function joinData() {
+  // Group perf rows by ad code
+  const byCode = new Map();
+  perfRows.forEach(r => {
+    if (!byCode.has(r.adCode)) byCode.set(r.adCode, []);
+    byCode.get(r.adCode).push(r);
+  });
+
+  allAds = [];
+  byCode.forEach((rows, adCode) => {
+    const tags   = masterMap?.get(adCode) || null;
+    const tagged = !!tags;
+    const product = tags?.product || rows[0].product0 || 'Unknown';
+
+    allAds.push({
+      adCode, tagged, product,
+      funnelStage:   tags?.funnelStage   || '',
+      format:        tags?.format        || '',
+      visualStyle:   tags?.visualStyle   || '',
+      contentBucket: tags?.contentBucket || '',
+      hook:          tags?.hook          || '',
+      voiceover:     tags?.voiceover     || '',
+      tone:          tags?.tone          || '',
+      language:      tags?.language      || '',
+      offer:         tags?.offer         || '',
+      price:         tags?.price         || '',
+      season:        tags?.season        || '',
+      production:    tags?.production    || '',
+      creator:       tags?.creator       || '',
+      starring:      tags?.starring      || '',
+      perfRows: rows,
+    });
+  });
+
+  // Detect products from both master and ad names
+  const pset = new Set(allAds.map(a => a.product).filter(Boolean));
+  products = ['All', ...Array.from(pset).sort()];
+
+  const tagged = allAds.filter(a => a.tagged).length;
+  document.getElementById('match-info').textContent = `${tagged} / ${allAds.length} ads tagged`;
+
+  console.log('[Join]', allAds.length, 'ads, tagged:', tagged);
+}
+
+// ─────────────────────────────────────────────────────────────
+// AGGREGATION
+// ─────────────────────────────────────────────────────────────
+
+function aggRows(rows) {
+  const spend     = sum(rows, 'spend');
+  const convValue = sum(rows, 'convValue');
+  const purchases = sum(rows, 'purchases');
+  const clicks    = sum(rows, 'clicks');
+  const atc       = sum(rows, 'atc');
+
+  let impressions = 0;
+  rows.forEach(r => { if (r.cpm > 0) impressions += r.spend / r.cpm * 1000; });
+
+  const roas     = spend > 0 ? convValue / spend : 0;
+  const ctr      = impressions > 0 ? clicks / impressions * 100 : 0;
+  const cpm      = impressions > 0 ? spend / impressions * 1000 : 0;
+  const cpc      = clicks > 0 ? spend / clicks : 0;
+  const atcRate  = clicks > 0 ? atc / clicks * 100 : 0;
+  const aov      = purchases > 0 ? convValue / purchases : 0;
+  const hookRate = spend > 0
+    ? rows.reduce((s, r) => s + (r.hookRate || 0) * (r.spend || 0), 0) / spend
+    : 0;
+
+  return { spend, convValue, purchases, clicks, atc, impressions, roas, ctr, cpm, cpc, atcRate, aov, hookRate };
+}
+
+function buildView() {
+  const { product, dateFrom, dateTo, minSpend, showUntagged } = S;
+
+  viewAds = [];
+
+  allAds.forEach(ad => {
+    if (product !== 'All' && ad.product !== product) return;
+    if (!showUntagged && !ad.tagged) return;
+
+    const rows = ad.perfRows.filter(r => {
+      if (!r.day) return true;
+      if (dateFrom && r.day < dateFrom) return false;
+      if (dateTo && r.day > dateTo) return false;
+      return true;
+    });
+
+    if (!rows.length) return;
+    const m = aggRows(rows);
+    if (m.spend < minSpend) return;
+
+    viewAds.push({ ...ad, ...m });
+  });
+}
+
+function groupBy(ads, key) {
+  const map = new Map();
+  ads.forEach(a => {
+    const v = (a[key] || '').trim() || '(Blank)';
+    if (!map.has(v)) map.set(v, []);
+    map.get(v).push(a);
+  });
+
+  return Array.from(map.entries()).map(([value, group]) => {
+    const spend     = group.reduce((s, a) => s + a.spend, 0);
+    const convValue = group.reduce((s, a) => s + a.convValue, 0);
+    const purchases = group.reduce((s, a) => s + a.purchases, 0);
+    const clicks    = group.reduce((s, a) => s + a.clicks, 0);
+    const impressions = group.reduce((s, a) => s + a.impressions, 0);
+    const count     = group.length;
+
+    const roas     = spend > 0 ? convValue / spend : 0;
+    const ctr      = impressions > 0 ? clicks / impressions * 100 : 0;
+    const hookRate = spend > 0
+      ? group.reduce((s, a) => s + a.hookRate * a.spend, 0) / spend : 0;
+
+    return { value, count, spend, convValue, purchases, clicks, impressions, roas, ctr, hookRate };
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// INIT DASHBOARD
+// ─────────────────────────────────────────────────────────────
+
+function initDashboard() {
+  // Product tabs
+  const tabsEl = document.getElementById('product-tabs');
+  tabsEl.innerHTML = products.map(p =>
+    `<button class="product-tab${p === S.product ? ' active' : ''}" data-product="${p}">${p}</button>`
+  ).join('');
+  tabsEl.addEventListener('click', e => {
+    const btn = e.target.closest('.product-tab');
+    if (!btn) return;
+    S.product = btn.dataset.product;
+    tabsEl.querySelectorAll('.product-tab').forEach(b => b.classList.toggle('active', b.dataset.product === S.product));
+    refresh();
+  });
+
+  // Date range
+  const dates = perfRows.map(r => r.day).filter(Boolean).map(d => d.getTime());
+  if (dates.length) {
+    const mn = new Date(Math.min(...dates));
+    const mx = new Date(Math.max(...dates));
+    document.getElementById('f-from').value = isoD(mn);
+    document.getElementById('f-to').value   = isoD(mx);
+    S.dateFrom = mn; S.dateTo = mx;
+  }
+
+  document.getElementById('f-from').addEventListener('change', e => {
+    S.dateFrom = e.target.value ? new Date(e.target.value) : null;
+    clearQD(); refresh();
+  });
+  document.getElementById('f-to').addEventListener('change', e => {
+    S.dateTo = e.target.value ? new Date(e.target.value + 'T23:59:59') : null;
+    clearQD(); refresh();
+  });
+
+  // Quick dates
+  document.querySelector('.filter-bar').addEventListener('click', e => {
+    const btn = e.target.closest('.qd-btn');
+    if (!btn) return;
+    clearQD(); btn.classList.add('active');
+    const days = +btn.dataset.days;
+    if (days === 0) {
+      const dates = perfRows.map(r => r.day).filter(Boolean).map(d => d.getTime());
+      if (dates.length) {
+        S.dateFrom = new Date(Math.min(...dates));
+        S.dateTo   = new Date(Math.max(...dates));
+        document.getElementById('f-from').value = isoD(S.dateFrom);
+        document.getElementById('f-to').value   = isoD(S.dateTo);
+      }
+    } else {
+      S.dateTo   = new Date();
+      S.dateFrom = new Date(S.dateTo.getTime() - days * 86400000);
+      document.getElementById('f-from').value = isoD(S.dateFrom);
+      document.getElementById('f-to').value   = isoD(S.dateTo);
+    }
+    refresh();
+  });
+
+  // Sort metric
+  document.getElementById('sort-metric').addEventListener('change', e => {
+    S.sortMetric = e.target.value;
+    const lbl = { roas:'ROAS', spend:'Spend', purchases:'Purchases', hookRate:'Hook Rate', ctr:'CTR', count:'Asset Count' };
+    document.getElementById('sort-label').textContent = lbl[S.sortMetric] || S.sortMetric;
+    renderBK(); renderMx();
+  });
+
+  // Min spend
+  document.getElementById('min-spend').addEventListener('change', e => { S.minSpend = +e.target.value; refresh(); });
+
+  // Show untagged
+  document.getElementById('show-untagged').addEventListener('change', e => {
+    S.showUntagged = e.target.value === 'include'; refresh();
+  });
+
+  // Ad table controls
+  document.getElementById('ad-srch').addEventListener('input', e => { S.adSearch = e.target.value.toLowerCase(); renderAdTbl(); });
+  document.getElementById('tag-filter').addEventListener('change', e => { S.tagFilter = e.target.value; renderAdTbl(); });
+  document.getElementById('ad-tbl').querySelector('thead').addEventListener('click', e => {
+    const th = e.target.closest('th');
+    if (!th || !th.dataset.col) return;
+    if (S.adSort === th.dataset.col) S.adDir *= -1;
+    else { S.adSort = th.dataset.col; S.adDir = -1; }
+    renderAdTbl();
+  });
+
+  // Matrix selects
+  const varOpts = BK_VARS.map(v => `<option value="${v.key}">${v.label}</option>`).join('');
+  document.getElementById('mx-row').innerHTML = varOpts;
+  document.getElementById('mx-col').innerHTML = varOpts;
+  document.getElementById('mx-row').value = 'format';
+  document.getElementById('mx-col').value = 'visualStyle';
+  document.getElementById('mx-row').addEventListener('change', e => { S.mxRow = e.target.value; renderMx(); });
+  document.getElementById('mx-col').addEventListener('change', e => { S.mxCol = e.target.value; renderMx(); });
+  document.getElementById('mx-metric').addEventListener('change', e => { S.mxMetric = e.target.value; renderMx(); });
+
+  refresh();
+}
+
+function clearQD() { document.querySelectorAll('.qd-btn').forEach(b => b.classList.remove('active')); }
+
+function refresh() { buildView(); renderKPI(); renderBK(); renderMx(); renderAdTbl(); }
+
+// ─────────────────────────────────────────────────────────────
+// RENDER — KPIs
+// ─────────────────────────────────────────────────────────────
+
+function renderKPI() {
+  const spend     = viewAds.reduce((s, a) => s + a.spend, 0);
+  const convValue = viewAds.reduce((s, a) => s + a.convValue, 0);
+  const purchases = viewAds.reduce((s, a) => s + a.purchases, 0);
+  const atc       = viewAds.reduce((s, a) => s + a.atc, 0);
+  const clicks    = viewAds.reduce((s, a) => s + a.clicks, 0);
+  const impr      = viewAds.reduce((s, a) => s + a.impressions, 0);
+
+  const roas     = spend > 0 ? convValue / spend : 0;
+  const ctr      = impr  > 0 ? clicks / impr * 100 : 0;
+  const cpm      = impr  > 0 ? spend  / impr * 1000 : 0;
+  const aov      = purchases > 0 ? convValue / purchases : 0;
+  const hookRate = spend > 0
+    ? viewAds.reduce((s, a) => s + a.hookRate * a.spend, 0) / spend : 0;
+
+  document.getElementById('kpi-grid').innerHTML = [
+    { l: 'Total Spend',  v: fmtSpend(spend),        s: `${viewAds.length} ads`          },
+    { l: 'ROAS',         v: roas.toFixed(2),         s: `Revenue ${fmtSpend(convValue)}` },
+    { l: 'Purchases',    v: fmtN(purchases),         s: `AOV ${fmtRs(aov)}`              },
+    { l: 'Add to Cart',  v: fmtN(atc),               s: `${clicks > 0 ? (atc/clicks*100).toFixed(1) : 0}% of clicks` },
+    { l: 'Hook Rate',    v: hookRate.toFixed(1) + '%',s: 'Spend-weighted avg'            },
+    { l: 'CTR',          v: ctr.toFixed(2)    + '%', s: `${fmtN(clicks)} clicks`        },
+    { l: 'CPM',          v: fmtRs(cpm),              s: 'Cost / 1K impressions'          },
+  ].map(k => `<div class="kpi-card">
+    <div class="kpi-label">${k.l}</div>
+    <div class="kpi-value">${k.v}</div>
+    <div class="kpi-sub">${k.s}</div>
+  </div>`).join('');
+}
+
+// ─────────────────────────────────────────────────────────────
+// RENDER — BREAKDOWNS
+// ─────────────────────────────────────────────────────────────
+
+function renderBK() {
+  const sk = S.sortMetric;
+
+  document.getElementById('bk-grid').innerHTML = BK_VARS.map(v => {
+    let groups = groupBy(viewAds, v.key);
+    groups.sort((a, b) => sk === 'count' ? b.count - a.count : (b[sk] || 0) - (a[sk] || 0));
+
+    const rows = groups.slice(0, 12).map(g => {
+      const rc = rClass(g.roas);
+      return `<tr>
+        <td><span class="val-txt" title="${g.value}">${g.value}</span></td>
+        <td style="text-align:right"><span class="cnt-badge">${g.count}</span></td>
+        <td style="text-align:right">${fmtSh(g.spend)}</td>
+        <td style="text-align:right">${g.spend > 0 ? `<span class="rb ${rc}">${g.roas.toFixed(2)}</span>` : '—'}</td>
+        <td style="text-align:right">${fmtN(g.purchases)}</td>
+        <td style="text-align:right">${g.hookRate > 0 ? g.hookRate.toFixed(0) + '%' : '—'}</td>
+      </tr>`;
+    }).join('');
+
+    return `<div class="bk-card">
+      <div class="bk-head">
+        <span class="bk-title">${v.label}</span>
+        <span class="bk-cnt">${groups.length} values</span>
+      </div>
+      <table class="bk-tbl">
+        <thead><tr>
+          <th>Value</th><th>Ads</th><th>Spend</th><th>ROAS</th><th>Purch</th><th>Hook%</th>
+        </tr></thead>
+        <tbody>${rows || '<tr><td colspan="6" class="empty-st">No data</td></tr>'}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────────────────────
+// RENDER — MATRIX
+// ─────────────────────────────────────────────────────────────
+
+function renderMx() {
+  const rk = S.mxRow, ck = S.mxCol, mk = S.mxMetric;
+  const el = document.getElementById('mx-tbl');
+
+  const rVals = [...new Set(viewAds.map(a => (a[rk] || '').trim()).filter(v => v && v !== '(Blank)'))].sort();
+  const cVals = [...new Set(viewAds.map(a => (a[ck] || '').trim()).filter(v => v && v !== '(Blank)'))].sort();
+
+  if (!rVals.length || !cVals.length) {
+    el.innerHTML = '<tr><td colspan="99" class="empty-st" style="padding:30px">No data — try changing variables or filters</td></tr>';
+    return;
+  }
+
+  // Build cells
+  const cells = {};
+  viewAds.forEach(a => {
+    const rv = (a[rk] || '').trim();
+    const cv = (a[ck] || '').trim();
+    if (!rv || !cv || rv === '(Blank)' || cv === '(Blank)') return;
+    const key = rv + '⌀' + cv;
+    if (!cells[key]) cells[key] = [];
+    cells[key].push(a);
+  });
+
+  function cellMetric(ads) {
+    if (!ads?.length) return null;
+    const spend = ads.reduce((s, a) => s + a.spend, 0);
+    const conv  = ads.reduce((s, a) => s + a.convValue, 0);
+    const purch = ads.reduce((s, a) => s + a.purchases, 0);
+    if (mk === 'roas')      return spend > 0 ? conv / spend : 0;
+    if (mk === 'spend')     return spend;
+    if (mk === 'purchases') return purch;
+    if (mk === 'count')     return ads.length;
+    return 0;
+  }
+
+  // Find max for colour scaling
+  const allVals = Object.values(cells).map(cellMetric).filter(v => v !== null && v > 0);
+  const maxVal  = Math.max(...allVals, 0.01);
+
+  const rowLabel = BK_VARS.find(v => v.key === rk)?.label || rk;
+  const colLabel = BK_VARS.find(v => v.key === ck)?.label || ck;
+
+  const thead = `<thead><tr>
+    <th class="corner-th" style="text-align:left">${rowLabel} → ${colLabel}</th>
+    ${cVals.map(cv => `<th title="${cv}">${cv.length > 15 ? cv.slice(0,13)+'…' : cv}</th>`).join('')}
+  </tr></thead>`;
+
+  const tbody = `<tbody>${rVals.map(rv => {
+    const tds = cVals.map(cv => {
+      const key  = rv + '⌀' + cv;
+      const ads  = cells[key];
+      const val  = cellMetric(ads);
+      if (val === null || val === 0) return '<td class="empty">—</td>';
+      const pct   = Math.min(1, val / maxVal);
+      const alpha = 0.08 + pct * 0.78;
+      const light = alpha < 0.45;
+      const cnt   = ads?.length || 0;
+
+      let disp = '';
+      if (mk === 'roas')      disp = val.toFixed(2);
+      else if (mk === 'spend') disp = fmtSh(val);
+      else if (mk === 'purchases') disp = fmtN(val);
+      else disp = cnt;
+
+      const sub = mk === 'roas' ? `<div style="font-size:9px;margin-top:1px;opacity:0.7">${cnt} ads</div>` : '';
+
+      return `<td style="background:rgba(37,99,235,${alpha.toFixed(2)});color:${light?'var(--navy)':'white'}" title="${cnt} ads">${disp}${sub}</td>`;
+    }).join('');
+    const label = rv.length > 24 ? rv.slice(0,22)+'…' : rv;
+    return `<tr><td class="row-hd" title="${rv}">${label}</td>${tds}</tr>`;
+  }).join('')}</tbody>`;
+
+  el.innerHTML = thead + tbody;
+}
+
+// ─────────────────────────────────────────────────────────────
+// RENDER — AD TABLE
+// ─────────────────────────────────────────────────────────────
+
+function renderAdTbl() {
+  let ads = [...viewAds];
+
+  if (S.tagFilter === 'tagged')   ads = ads.filter(a => a.tagged);
+  if (S.tagFilter === 'untagged') ads = ads.filter(a => !a.tagged);
+
+  if (S.adSearch) {
+    const q = S.adSearch;
+    ads = ads.filter(a =>
+      (a.adCode       || '').toLowerCase().includes(q) ||
+      (a.product      || '').toLowerCase().includes(q) ||
+      (a.creator      || '').toLowerCase().includes(q) ||
+      (a.format       || '').toLowerCase().includes(q) ||
+      (a.hook         || '').toLowerCase().includes(q) ||
+      (a.contentBucket|| '').toLowerCase().includes(q)
+    );
+  }
+
+  ads.sort((a, b) => {
+    const va = a[S.adSort] ?? '';
+    const vb = b[S.adSort] ?? '';
+    if (typeof va === 'number') return (va - vb) * S.adDir;
+    return String(va).localeCompare(String(vb)) * S.adDir;
+  });
+
+  document.getElementById('ad-cnt').textContent = `${ads.length} ads`;
+  document.getElementById('ad-sub').textContent  = `${ads.length} unique ads in current selection`;
+
+  document.querySelectorAll('.dtbl th').forEach(th => {
+    th.classList.toggle('sorted', th.dataset.col === S.adSort);
+  });
+
+  const tbody = document.getElementById('ad-tbody');
+  if (!ads.length) {
+    tbody.innerHTML = '<tr><td colspan="15" class="empty-st">No ads match current filters</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = ads.map(a => {
+    const rc  = rClass(a.roas);
+    const ptc = a.tagged ? 'tag-prod' : 'tag-prod tag-untag';
+    return `<tr>
+      <td><span class="adcode">${a.adCode}</span></td>
+      <td><span class="${ptc}">${a.product || '?'}</span></td>
+      <td>${a.funnelStage   || '—'}</td>
+      <td>${a.format        || '—'}</td>
+      <td>${a.visualStyle   || '—'}</td>
+      <td>${a.contentBucket || '—'}</td>
+      <td>${a.hook          || '—'}</td>
+      <td>${a.tone          || '—'}</td>
+      <td>${a.creator       || '—'}</td>
+      <td class="r">${fmtSh(a.spend)}</td>
+      <td class="r">${a.spend > 0 ? `<span class="rb ${rc}">${a.roas.toFixed(2)}</span>` : '—'}</td>
+      <td class="r">${fmtN(a.purchases)}</td>
+      <td class="r">${a.hookRate > 0 ? a.hookRate.toFixed(1) + '%' : '—'}</td>
+      <td class="r">${a.ctr > 0 ? a.ctr.toFixed(2) + '%' : '—'}</td>
+      <td class="r">${a.cpm > 0 ? fmtRs(a.cpm) : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────────────────────
+// UTILITIES
+// ─────────────────────────────────────────────────────────────
+
+function rClass(r) {
+  if (r >= 5) return 'rb5';
+  if (r >= 4) return 'rb4';
+  if (r >= 3) return 'rb3';
+  if (r >= 2) return 'rb2';
+  return 'rb1';
+}
+
+function cl(v) { return (v === null || v === undefined) ? '' : String(v).trim(); }
+function n(v)  { const x = parseFloat(v); return isNaN(x) ? 0 : x; }
+function sum(rows, k) { return rows.reduce((s, r) => s + (r[k] || 0), 0); }
+function isoD(d) { return d ? d.toISOString().slice(0, 10) : ''; }
+
+function fmtN(v) {
+  if (!v && v !== 0) return '—';
+  return Math.round(v).toLocaleString('en-IN');
+}
+
+function fmtRs(v) {
+  if (!v) return '—';
+  return '₹' + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function fmtSpend(v) {
+  if (!v) return '₹0';
+  if (v >= 1e7) return '₹' + (v / 1e7).toFixed(2) + ' Cr';
+  if (v >= 1e5) return '₹' + (v / 1e5).toFixed(2) + ' L';
+  if (v >= 1e3) return '₹' + (v / 1e3).toFixed(1) + 'K';
+  return '₹' + Math.round(v);
+}
+
+function fmtSh(v) {
+  if (!v) return '—';
+  if (v >= 1e7) return '₹' + (v / 1e7).toFixed(1) + 'Cr';
+  if (v >= 1e5) return '₹' + (v / 1e5).toFixed(1) + 'L';
+  if (v >= 1e3) return '₹' + (v / 1e3).toFixed(0) + 'K';
+  return '₹' + Math.round(v);
+}
+</script>
+</body>
+</html>
